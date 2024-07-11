@@ -12,12 +12,19 @@ class MockLLM:
 
 
 class EntityExtractorTests(unittest.TestCase):
-    def test_valid_formatting(self):
+    def test_valid_json(self):
         mock_client = MockLLM('{"persons": ["John Doe", "Alice", "Bob"], "organisations": ["Acme Corp", "Giga Tech"]}')
         entity_extractor = EntityExtractor(mock_client)
         parsed_response = entity_extractor.extract_entities("Test Document")
         expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
         self.assertDictEqual(expected_response, parsed_response, "Failed parsing valid LLM response")
+
+    def test_invalid_json(self):
+        mock_client = MockLLM('{"persons": "John Doe", "Alice", "Bob", "organisations": "Acme Corp", "Giga Tech"}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': [], 'organisations': []}
+        self.assertDictEqual(expected_response, parsed_response, "Unexpected handling of incorrect JSON formatting")
 
     def test_cleaning_non_ascii_keys(self):
         mock_client = MockLLM('{"perso‰¿ns¿": ["John Doe", "Alice", "Bob"], "¿org‰anisat¿ions": ["Acme Corp", "Giga Tech"]}')
@@ -43,4 +50,5 @@ class EntityExtractorTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
 
