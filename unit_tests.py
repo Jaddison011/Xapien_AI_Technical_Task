@@ -26,7 +26,17 @@ class EntityExtractorTests(unittest.TestCase):
         expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
         self.assertDictEqual(expected_response, parsed_response, "Failed parsing LLM response containing keys with non-ascii values")
 
+    def test_cleaning_unquoted_keys(self):
+        mock_client = MockLLM('{"persons": ["John Doe", "Alice", "Bob"], organisations: ["Acme Corp", "Giga Tech"]}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
+        self.assertDictEqual(expected_response, parsed_response, "Failed parsing LLM response containing non-quoted keys")
+
 
 if __name__ == '__main__':
-    unittest.main()
-
+    # unittest.main()
+    mock_client = MockLLM('{"persons": ["John Doe", "Alice", "Bob"], organisations: ["Acme Corp", "Giga Tech"]}')
+    entity_extractor = EntityExtractor(mock_client)
+    parsed_response = entity_extractor.extract_entities("Test Document")
+    print(parsed_response)
