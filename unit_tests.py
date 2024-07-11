@@ -24,7 +24,8 @@ class EntityExtractorTests(unittest.TestCase):
         entity_extractor = EntityExtractor(mock_client)
         parsed_response = entity_extractor.extract_entities("Test Document")
         expected_response = {'persons': [], 'organisations': []}
-        self.assertDictEqual(expected_response, parsed_response, "Unexpected handling of incorrect JSON formatting")
+        self.assertDictEqual(expected_response, parsed_response, "Unexpected handling of incorrect JSON "
+                                                                 "syntax/formatting")
 
     def test_cleaning_non_ascii_keys(self):
         mock_client = MockLLM(
@@ -59,6 +60,20 @@ class EntityExtractorTests(unittest.TestCase):
         self.assertDictEqual(expected_response, parsed_response,
                              "Incorrect handling of invalid LLM response, where the keys contain values instead of "
                              "lists")
+
+    def test_value_type_filtering(self):
+        mock_client = MockLLM('{"persons": ["John Doe", 1, "Alice", 2.056, 3, "Bob"], "organisations": [0, "Acme Corp", 3.1416592, "Giga Tech"]}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
+        self.assertDictEqual(expected_response, parsed_response, "Incorrect filtering of non-string values within the 'persons' and 'organisations' lists")
+
+    def test_american_key_spellings(self):
+        mock_client = MockLLM('{"persons": ["John Doe","Alice", "Bob"], "organizations": ["Acme Corp", "Giga Tech"]}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
+        self.assertDictEqual(expected_response, parsed_response, "Incorrect handling of american spelling of 'organization' within the LLM response")
 
 
 if __name__ == '__main__':
