@@ -1,11 +1,24 @@
 import unittest
 
+from Xapien_AI_Technical_Task.main import *
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)  # add assertion here
+
+class MockLLM:
+    def __init__(self, mock_response: str):
+        self.mock_response = mock_response
+
+    def complete(self, prompt: str) -> str:
+        return self.mock_response
+
+
+class EntityExtractorTests(unittest.TestCase):
+    def test_valid_formatting(self):
+        mock_client = MockLLM('{"persons": ["John Doe", "Alice", "Bob"], "organisations": ["Acme Corp", "Giga Tech"]}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
+        self.assertDictEqual(expected_response, parsed_response, "Failed parsing valid LLM response")
 
 
 if __name__ == '__main__':
     unittest.main()
-
