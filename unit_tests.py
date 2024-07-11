@@ -33,10 +33,14 @@ class EntityExtractorTests(unittest.TestCase):
         expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
         self.assertDictEqual(expected_response, parsed_response, "Failed parsing LLM response containing non-quoted keys")
 
+    def test_key_casing(self):
+        mock_client = MockLLM('{"PeRsOns": ["John Doe", "Alice", "Bob"], oRGANIsatioNS: ["Acme Corp", "Giga Tech"]}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
+        self.assertDictEqual(expected_response, parsed_response, "Failed parsing LLM response containing uppercase keys")
+
 
 if __name__ == '__main__':
-    # unittest.main()
-    mock_client = MockLLM('{"persons": ["John Doe", "Alice", "Bob"], organisations: ["Acme Corp", "Giga Tech"]}')
-    entity_extractor = EntityExtractor(mock_client)
-    parsed_response = entity_extractor.extract_entities("Test Document")
-    print(parsed_response)
+    unittest.main()
+
