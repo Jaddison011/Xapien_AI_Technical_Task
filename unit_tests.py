@@ -62,20 +62,30 @@ class EntityExtractorTests(unittest.TestCase):
                              "lists")
 
     def test_value_type_filtering(self):
-        mock_client = MockLLM('{"persons": ["John Doe", 1, "Alice", 2.056, 3, "Bob"], "organisations": [0, "Acme Corp", 3.1416592, "Giga Tech"]}')
+        mock_client = MockLLM(
+            '{"persons": ["John Doe", 1, "Alice", 2.056, 3, "Bob"], "organisations": [0, "Acme Corp", 3.1416592, "Giga Tech"]}')
         entity_extractor = EntityExtractor(mock_client)
         parsed_response = entity_extractor.extract_entities("Test Document")
         expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
-        self.assertDictEqual(expected_response, parsed_response, "Incorrect filtering of non-string values within the 'persons' and 'organisations' lists")
+        self.assertDictEqual(expected_response, parsed_response,
+                             "Incorrect filtering of non-string values within the 'persons' and 'organisations' lists")
 
     def test_american_key_spellings(self):
         mock_client = MockLLM('{"persons": ["John Doe","Alice", "Bob"], "organizations": ["Acme Corp", "Giga Tech"]}')
         entity_extractor = EntityExtractor(mock_client)
         parsed_response = entity_extractor.extract_entities("Test Document")
         expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
-        self.assertDictEqual(expected_response, parsed_response, "Incorrect handling of american spelling of 'organization' within the LLM response")
+        self.assertDictEqual(expected_response, parsed_response,
+                             "Incorrect handling of american spelling of 'organization' within the LLM response")
+
+    def test_key_ordering(self):
+        mock_client = MockLLM('{"organisations": ["Acme Corp", "Giga Tech"], "persons": ["John Doe", "Alice", "Bob"]}')
+        entity_extractor = EntityExtractor(mock_client)
+        parsed_response = entity_extractor.extract_entities("Test Document")
+        expected_response = {'persons': ['John Doe', 'Alice', 'Bob'], 'organisations': ['Acme Corp', 'Giga Tech']}
+        self.assertDictEqual(expected_response, parsed_response, "Incorrect handling of response where the order of "
+                                                                 "key values is switched")
 
 
 if __name__ == '__main__':
     unittest.main()
-
